@@ -1,0 +1,14 @@
+[package]
+name = "bpp-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "bpp"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+structopt = "0.3.26"
+uuid = { version = "1.2.2", features = ["v4"] }
