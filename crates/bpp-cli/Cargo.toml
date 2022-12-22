@@ -12,3 +12,6 @@ path = "src/main.rs"
 [dependencies]
 structopt = "0.3.26"
 uuid = { version = "1.2.2", features = ["v4"] }
+bpp-proto = { path = "../bpp-proto" }
+tonic = "0.8.3"
+tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }

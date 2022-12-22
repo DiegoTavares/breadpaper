@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "crates/bpp-cli",
-#   "crates/bpp-server",
-#   "crates/bpp-proto",
+    "crates/bpp-proto",
+    #   "crates/bpp-server",
 ]

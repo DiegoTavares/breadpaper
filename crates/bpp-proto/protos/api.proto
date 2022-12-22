@@ -1,0 +1,50 @@
+syntax = "proto3";
+option optimize_for = SPEED;
+
+package bpp;
+
+message Note {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+}
+
+service Api {
+  // add(title: String, content: String) -> Result<Note, Error>
+  rpc Add(AddRequest) returns(AddResponse) {}
+
+  // rm(id: String) -> result<Option<Note>, Error>
+  rpc Rm(RmRequest) returns(RmResponse) {}
+
+  // search(all: bool, input: String) -> Vec<Note>
+  rpc Search(SearchRequest) returns(SearchResponse) {}
+}
+
+// Requests and Responses
+
+message AddRequest {
+  string title = 1;
+  string content = 2;
+}
+
+message AddResponse {
+  Note note = 1;
+}
+
+message RmRequest {
+  string id = 1;
+}
+
+message RmResponse {
+  optional Note note = 1;
+}
+
+
+message SearchRequest {
+  string query = 1;
+  bool all = 2;
+}
+
+message SearchResponse {
+  repeated Note notes = 1;
+}
