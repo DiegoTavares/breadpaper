@@ -1,6 +1,9 @@
+mod error_def;
+
+use crate::error_def::BppCliError;
 use bpp_proto::bpp::api_client::ApiClient;
 use bpp_proto::bpp::{AddRequest, RmRequest, SearchRequest};
-use std::fmt::format;
+use error_stack::{report, Result};
 use std::fs;
 use structopt::StructOpt;
 use tonic::transport::Channel;
@@ -76,18 +79,16 @@ struct SearchOpts {
     query: String,
 }
 
-#[derive(Debug)]
-pub enum BppCliError {
-    FailedToAddNote,
-    FailedToRmNote,
-    InvalidParameters,
-}
-
 impl BppCli {
     pub async fn run(&self) -> Result<i32, BppCliError> {
-        let mut client = ApiClient::connect("http://[::1]:8085")
+        let port = "8085";
+        let mut client = ApiClient::connect(format!("http://[::1]:{port}"))
             .await
-            .expect("Failed to connect");
+            .map_err(|err| {
+                report!(err).change_context(BppCliError::FailedToConnect(format!(
+                    "Failed to connect to port {port}"
+                )))
+            })?;
 
         match &self.subcommands {
             SubCommands::Add(add_opts) => {
@@ -101,12 +102,12 @@ impl BppCli {
                         .arg("-c")
                         .arg(&cmd)
                         .spawn()
-                        .expect("Error: Failed to start VIM") // TODO: Handle errors
+                        .map_err(|err| report!(err).change_context(BppCliError::FailedToAddNote))?
                         .wait()
-                        .expect("Error: Editor crashed"); // TODO: Handle errors
-                                                          // Read tmp file
-                    let user_text =
-                        fs::read_to_string(tmp_file).expect("Error: Failed to read tmp file"); // TODO: Handle errors
+                        .map_err(|err| report!(err).change_context(BppCliError::FailedToAddNote))?;
+                    // Read tmp file
+                    let user_text = fs::read_to_string(tmp_file)
+                        .map_err(|err| report!(err).change_context(BppCliError::FailedToAddNote))?;
 
                     if let Some((title, content)) = user_text.split_once('\n') {
                         title_out = Some(title.to_string());
@@ -125,7 +126,9 @@ impl BppCli {
                 if title_out.is_some() && content_out.is_some() {
                     Self::handle_add(&mut client, &title_out.unwrap(), &content_out.unwrap()).await
                 } else {
-                    Err(BppCliError::InvalidParameters)
+                    Err(report!(BppCliError::InvalidParameters(
+                        "Title and Content cannot be empty".to_string()
+                    )))
                 }
             }
             SubCommands::Rm(rm_opts) => Self::handle_rm(&mut client, &rm_opts.id).await,
@@ -156,7 +159,7 @@ impl BppCli {
                     Ok(1)
                 }
             }
-            Err(err) => Err(BppCliError::FailedToAddNote),
+            Err(err) => Err(report!(err).change_context(BppCliError::FailedToAddNote)),
         }
     }
 
@@ -174,7 +177,7 @@ impl BppCli {
                     Ok(1)
                 }
             }
-            Err(err) => Err(BppCliError::FailedToRmNote),
+            Err(err) => Err(report!(err).change_context(BppCliError::FailedToRmNote)),
         }
     }
 
@@ -195,7 +198,7 @@ impl BppCli {
                 let notes = resp.into_inner().notes;
                 if notes.len() > 0 {
                     for note in notes {
-                        println!("{}: {}", note.title, note.content);
+                        println!("{note}");
                         println!("--------");
                     }
                 } else {
@@ -203,7 +206,7 @@ impl BppCli {
                 }
                 Ok(0)
             }
-            Err(err) => Err(BppCliError::FailedToRmNote),
+            Err(err) => Err(report!(err).change_context(BppCliError::FailedToRmNote)),
         }
     }
 }
