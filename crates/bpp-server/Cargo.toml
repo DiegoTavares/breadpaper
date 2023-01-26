@@ -1,0 +1,12 @@
+[package]
+name = "bpp-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+config = "0.13.3"
+error-stack = "0.2.4"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_derive = "1.0.152"
