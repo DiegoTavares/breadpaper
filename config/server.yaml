@@ -1,0 +1,7 @@
+database:
+  connection_str: user@testdb:8080
+  password: somePass
+logging:
+  level: DEBUG
+service:
+  name: NoteService

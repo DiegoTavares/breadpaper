@@ -2,5 +2,5 @@
 members = [
     "crates/bpp-cli",
     "crates/bpp-proto",
-    #   "crates/bpp-server",
+    "crates/bpp-server",
 ]
